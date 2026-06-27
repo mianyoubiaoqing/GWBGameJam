@@ -1,0 +1,10 @@
+GWBGameJam - 任务完成记录
+========================================
+
+[2026-06-27 13:40]
+任务：确认项目目录可访问，创建任务日志文件
+状态：完成
+备注：项目位于 D:\Unity Workplace\GWBGameJam，包含完整 Unity 项目结构（Assets、Packages、ProjectSettings、.git 等），已连接 GitHub 仓库 APieceOfToast123/GWBGameJam。
+
+========================================
+（后续每次完成任务后追加记录）
