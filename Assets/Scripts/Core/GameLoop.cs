@@ -45,6 +45,14 @@ namespace GWBGameJam
 
             HandleDevSpeed();
             HandlePauseInput();
+            HandleDebugInput();
+        }
+
+        private void HandleDebugInput()
+        {
+            if (!Input.GetKeyDown(KeyCode.V)) return;
+            if (_currentState != GameState.Playing && _currentState != GameState.Paused) return;
+            DebugCompleteLevel();
         }
 
         // ── 公开方法（供 UI 按钮调用）──────────────────────────────
@@ -74,6 +82,13 @@ namespace GWBGameJam
             if (_currentState != GameState.LevelTransition) return;
             _currentLevelIndex++;
             BeginLevel();
+        }
+
+        public void DebugCompleteLevel()
+        {
+            if (_currentState != GameState.Playing && _currentState != GameState.Paused) return;
+            if (_currentState == GameState.Paused) Time.timeScale = 1f;
+            EventBus<OnLevelCleared>.Publish(new OnLevelCleared());
         }
 
         // ── 内部状态流转 ────────────────────────────────────────────

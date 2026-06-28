@@ -683,3 +683,74 @@ Architecture / CodingRules / TaskBreakdown / ManualInstructions / Code 已完全
   GoToMainMenu() 缺少 SceneManager.LoadScene 同为集成缺口，均在 T20 手动步骤中说明并提供修复代码
 
 ========================================
+
+[2026-06-28 T19-T22 手动操作进行中]
+指令：启动开发会话，执行 T19-T22 手动操作
+操作：
+  T19：Prefab 制作完成（Monster_A/B/C + Bread）
+  T20 部分完成：
+    - GameLoop 集成修复 ✅（StartGame + GoToMainMenu + SceneLoader）
+    - SceneLoader.cs 创建 ✅
+    - PauseMenu_Canvas 按钮创建并连线 ✅（ContinueButton + MainMenuButton）
+    - LevelTransition_Canvas TMP Text 创建 ✅
+    - Build Settings 修复（添加 MainMenu + Game 场景，修正 GUID）
+    - UISystem 过关文本改为英文（中文字体缺失）
+  T21 部分完成：
+    - 球道 PolygonCollider2D 已设
+    - 但 LaneCalculator 算出的 Y=200-500 范围与实际场景不匹配，点位未生效
+  T22 测试进度：
+    - MainMenu → Game 场景切换 ✅
+    - 怪物生成 ✅ 但不显示（MonsterData 无 Sprite）
+    - NPE 发现：Main Camera Tag 未设为 MainCamera → LaneManager.Update NRE
+未完成：
+  - 创建 QuickWaypointGenerator（不依赖 Collider 的点位生成工具）
+  - StarterPrompt.md 移至项目根目录 ✅
+状态：进行中
+备注：多个 Bug 待修复（Camera Tag / Monster Sprite / 球道点位 / UI 参考线）
+
+========================================
+
+[2026-06-28 UI 制作 Prompt]
+指令：生成 UI 制作的手动操作 Prompt，保存到 .md 文件
+操作：创建 Docs/UI制作Prompt.md，包含 4 个 UI 界面（MainMenu / PauseMenu / LevelTransition / Victory）的完成清单和 Unity MCP 操作步骤
+状态：完成
+备注：可直接复制到新 Claude 会话使用；代码层 UI 逻辑已就位，主要工作是 Inspector 连线和视觉完善
+
+========================================
+
+[2026-06-28 UI 按钮文字修复]
+指令：修复暂停页面时看不到 leveltransition 的问题
+操作：核查 YAML 后发现所有按钮文字均为默认占位符 "Button"，逐一修正：
+  - LevelTransition 按钮: "Button" → "Continue" ✅
+  - Death_Canvas 按钮: "Button" → "Back to Main Menu" ✅
+  - Victory_Canvas 按钮: "Button" → "Back to Main Menu" ✅
+  - PauseMenu MainMenuButton: "Back to Mainmeun" → "Back to Main Menu" ✅
+状态：完成
+备注：过关界面现在清楚显示 "Level X Clear!" + "Continue" 按钮，玩家可明确知道如何进入下一关
+
+========================================
+
+[2026-06-28 调试通关快捷键]
+指令：加一个调试功能按 V 直接通关，用于检查 Victory/过关界面
+操作：
+  - GameLoop.cs 新增 DebugCompleteLevel() 公开方法
+  - GameLoop.cs 新增 HandleDebugInput() 按 V 键触发
+  - 修复了之前不小心重复 Update 方法的 bug
+状态：完成
+备注：游戏中按 V 立即通关当前关卡；第3关（最后一关）按 V 直接显示 Victory 界面
+
+========================================
+
+[2026-06-28 修复 HUD_Canvas 不可见]
+指令：进入 Level1 后 HUD_Canvas 不亮
+操作：检查 Game.unity YAML 发现所有 6 个 Canvas 的 RectTransform m_LocalScale 均为 {x:0,y:0,z:0}，子元素缩放为0不可见
+  - HUD_Canvas ✅ scale 0→1
+  - PauseMenu_Canvas ✅ scale 0→1
+  - LevelTransition_Canvas ✅ scale 0→1
+  - Death_Canvas ✅ scale 0→1
+  - Victory_Canvas ✅ scale 0→1
+  - 背景 Canvas ✅ scale 0→1
+状态：完成
+备注：根本原因是场景手动搭建时 Canvas 的 RectTransform scale 被设为 0
+
+========================================
