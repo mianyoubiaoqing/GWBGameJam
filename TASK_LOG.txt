@@ -313,4 +313,39 @@ GWBGameJam - 任务完成记录
 备注：覆盖游戏玩法简介、环境要求、快速开始、项目结构、Claude 使用方法（含可复制 prompt）、Balance 调整速查表、关键文档索引
 
 ========================================
+========================================
+
+[2026-06-27 Task Breakdown]
+指令：进入 Task Breakdown 阶段，拆解编码任务
+操作：创建 Docs/TaskBreakdown.md，共 22 个 Task，6 个 Phase
+状态：完成
+备注：
+  Phase 0（T01-T05）：基础设施（asmdef/Enum/EventBus/SO类/SO资产）
+  Phase 1（T06）：GameLoop 状态机
+  Phase 2（T07）：场景层级搭建
+  Phase 3（T08-T14）：7 个系统按依赖顺序实现
+  Phase 4（T15-T17）：UI（Canvas切换/比例条/烤制指示器/HP条）
+  Phase 5（T18）：DevTools LaneCalculator
+  Phase 6（T19-T22）：Prefab/连线/烘焙/集成测试
+  ⚠️ T04 注意：Architecture 草稿事件命名与 System Spec 有差异，T04 以 System Spec 为准
+
+========================================
+========================================
+
+[2026-06-27 编码阶段 Phase 0-1]
+指令：执行 T01~T06
+操作：
+  T01: 创建2个asmdef + 10个子目录
+  T02: GameEnums.cs（4枚举）+ EventBus.cs（静态泛型，Publish异常隔离，Subscribe并发安全）
+  T03: 12个SO类定义（GameLoopConfig/BakingConfig/MonsterConfig/LevelConfig/LevelData/TableConfig/DoughConfig/DoughStateBoundaryConfig/LaneWaypointConfig/LaneWaypoints/MonsterData/ThrowConfig）
+  T04: 8个Event Struct文件（GameLoopEvents/MonsterEvents/DoughEvents/BakingEvents/ThrowEvents/LaneEvents/LevelEvents/TableEvents）
+  T06: GameLoop.cs（状态机、同帧冲突处理、DevSpeed、Pause）
+状态：完成
+备注：
+  T05（SO Assets创建）需在Unity Editor手动操作，已跳过等待
+  EventBus使用buffer list处理Publish期间的Subscribe/Unsubscribe，避免迭代器失效
+  GameLoop同帧OnTableDestroyed+OnLevelCleared → 下一帧Update中优先处理Death
+  LevelTransition→下一关由 AdvanceFromTransition() 公开方法触发（UISystem按钮调用）
+
+========================================
 （后续每次完成任务后追加记录）

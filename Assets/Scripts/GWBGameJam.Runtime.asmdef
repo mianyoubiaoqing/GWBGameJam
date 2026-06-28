@@ -1,0 +1,14 @@
+{
+    "name": "GWBGameJam.Runtime",
+    "rootNamespace": "GWBGameJam",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
