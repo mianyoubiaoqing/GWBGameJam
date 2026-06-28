@@ -52,34 +52,56 @@ Claude 会遵守工作流，先分析影响再行动。
 
 ---
 
+## 当前阶段说明（2026-06-27）
+
+**编码全部完成（T01–T18），剩余全为手动 Unity 操作：**
+
+| Task | 内容 | 状态 |
+|------|------|------|
+| T19 | Prefab 制作（Monster_A/B/C、Bread）| ⬜ 手动 |
+| T20 | Inspector 连线（含 2 处 GameLoop 修复）| ⬜ 手动 |
+| T21 | 球道点位烘焙（LaneCalculatorWindow）| ⬜ 手动 |
+| T22 | 端到端集成测试 | ⬜ 手动 |
+
+手动操作步骤详见 `Docs/ManualInstructions.md`。
+美术素材需求详见 `SPEC_QA_AND_ASSETS.txt`。
+
+---
+
 ## 常见场景 Prompt 参考
 
-**查看所有 Spec 文档：**
+**查看手动操作步骤：**
 ```
-列出 Docs/ 目录下所有文档，并告诉我每个的当前状态。
-```
-
-**开始 Task Breakdown：**
-```
-所有 Spec 已确认。请把整个项目拆解成编码 Task 列表，
-按照依赖顺序排列，每个 Task 粒度控制在 1-3 个脚本文件内。
+打开 Docs/ManualInstructions.md，告诉我 T19 的具体操作步骤。
 ```
 
-**开始实现某个系统：**
+**运行时报错求助：**
 ```
-开始实现 EventBus<T>，路径 Assets/Scripts/Core/EventBus.cs。
-实现前先阅读 013_CodingRules.md。
+Unity 报了这个错误：[粘贴报错信息]
+帮我定位原因并修复。
 ```
+
+**Inspector 连线不知道填什么：**
+```
+T20 中 ThrowSystem 的 _throwOrigin 字段应该填什么？
+```
+（Claude 会查代码和 Spec 给出准确答案）
 
 **数值调整（Balance 类）：**
 ```
 把第一关的生成间隔从 9 秒改为 6 秒。
 ```
-（Claude 会直接告诉你改哪个 SO 字段，无需动代码）
+（Claude 会直接告诉你改哪个 ScriptableObject 字段，无需动代码）
 
 **设计变更（Gameplay 类）：**
 ```
 我想让怪物逃跑时桌子不扣 HP，只有碰到桌子才扣。
-请先分析这个改动影响哪些 Spec 和系统。
+请先分析这个改动影响哪些 Spec 和系统，不要直接改代码。
 ```
 （Claude 会先分析，等你确认后再修改 Spec 和代码）
+
+**T22 测试发现 Bug：**
+```
+测试路径 2（正确击杀）走不通，面包飞出去但怪物没有消失，Console 无报错。
+帮我排查。
+```
