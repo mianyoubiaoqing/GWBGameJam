@@ -84,9 +84,14 @@ namespace GWBGameJam
 
             // Target position: monster's predicted pos if present, else mid-lane waypoint
             MonsterController monster = _monsterSystem.GetMonsterInLane(_targetLaneIndex);
-            _targetPos = monster != null
-                ? _monsterSystem.GetTargetPosition(_targetLaneIndex)
-                : _laneManager.GetWaypoint(_targetLaneIndex, _monsterConfig.MoveStepCount / 2);
+            if (monster != null)
+            {
+                _targetPos = _monsterSystem.GetTargetPosition(_targetLaneIndex);
+            }
+            else if (!_laneManager.TryGetWaypoint(_targetLaneIndex, _monsterConfig.MoveStepCount / 2, out _targetPos))
+            {
+                _targetPos = _startPos;
+            }
 
             _flightTimer = 0f;
             _activeProjectile = Instantiate(_projectilePrefab, _startPos, Quaternion.identity);
@@ -114,13 +119,13 @@ namespace GWBGameJam
                     break;
             }
 
+            EventBus<OnThrowCompleted>.Publish(new OnThrowCompleted(_targetLaneIndex, result));
+
             if (_activeProjectile != null)
             {
                 Destroy(_activeProjectile);
                 _activeProjectile = null;
             }
-
-            EventBus<OnThrowCompleted>.Publish(new OnThrowCompleted(_targetLaneIndex, result));
         }
 
         private ThrowResult DetermineResult(MonsterController monster)

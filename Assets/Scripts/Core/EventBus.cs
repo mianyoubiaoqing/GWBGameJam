@@ -7,14 +7,17 @@ namespace GWBGameJam
     public static class EventBus<T> where T : struct
     {
         private static readonly List<Action<T>> _handlers = new();
-        private static readonly List<Action<T>> _handlersBuffer = new();
+        private static readonly List<Action<T>> _pendingSubscribe = new();
+        private static readonly List<Action<T>> _pendingUnsubscribe = new();
         private static bool _publishing;
 
         public static void Subscribe(Action<T> handler)
         {
             if (_publishing)
             {
-                _handlersBuffer.Add(handler);
+                _pendingUnsubscribe.Remove(handler);
+                if (!_handlers.Contains(handler) && !_pendingSubscribe.Contains(handler))
+                    _pendingSubscribe.Add(handler);
                 return;
             }
             if (!_handlers.Contains(handler))
@@ -25,7 +28,9 @@ namespace GWBGameJam
         {
             if (_publishing)
             {
-                _handlersBuffer.Remove(handler);
+                _pendingSubscribe.Remove(handler);
+                if (_handlers.Contains(handler) && !_pendingUnsubscribe.Contains(handler))
+                    _pendingUnsubscribe.Add(handler);
                 return;
             }
             _handlers.Remove(handler);
@@ -36,9 +41,13 @@ namespace GWBGameJam
             _publishing = true;
             for (int i = 0; i < _handlers.Count; i++)
             {
+                Action<T> handler = _handlers[i];
+                if (_pendingUnsubscribe.Contains(handler))
+                    continue;
+
                 try
                 {
-                    _handlers[i]?.Invoke(eventData);
+                    handler?.Invoke(eventData);
                 }
                 catch (Exception e)
                 {
@@ -47,9 +56,14 @@ namespace GWBGameJam
             }
             _publishing = false;
 
-            foreach (var h in _handlersBuffer)
-                _handlers.Add(h);
-            _handlersBuffer.Clear();
+            foreach (var h in _pendingUnsubscribe)
+                _handlers.Remove(h);
+            _pendingUnsubscribe.Clear();
+
+            foreach (var h in _pendingSubscribe)
+                if (!_handlers.Contains(h))
+                    _handlers.Add(h);
+            _pendingSubscribe.Clear();
         }
     }
 }

@@ -1,32 +1,58 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace GWBGameJam
 {
     [CreateAssetMenu(fileName = "MonsterConfig", menuName = "GWBGameJam/Configs/MonsterConfig")]
     public class MonsterConfig : ScriptableObject
     {
-        [Min(0.2f)] public float MoveIntervalSeconds = 1f;
-        [Min(4)] public int MoveStepCount = 8;
-        [Min(0.05f)] public float PendingMoveThreshold = 0.5f;
-        public AnimationCurve ScaleCurve = AnimationCurve.Linear(0, 0.01f, 7, 1.5f);
-        [Min(0.05f)] public float MoveDuration = 0.3f;
-        [Min(1)] public int WrongHitFlashCount = 2;
-        [Min(0.05f)] public float WrongHitFlashDuration = 0.1f;
+        [SerializeField, Min(0.2f), FormerlySerializedAs("MoveIntervalSeconds")]
+        private float _moveIntervalSeconds = 1f;
+        [SerializeField, Min(4), FormerlySerializedAs("MoveStepCount")]
+        private int _moveStepCount = 8;
+        [SerializeField, Min(0.05f), FormerlySerializedAs("PendingMoveThreshold")]
+        private float _pendingMoveThreshold = 0.5f;
+        [SerializeField, FormerlySerializedAs("ScaleCurve")]
+        private AnimationCurve _scaleCurve = DefaultScaleCurve();
+        [SerializeField, Min(0.05f), FormerlySerializedAs("MoveDuration")]
+        private float _moveDuration = 0.3f;
+        [SerializeField, Min(1), FormerlySerializedAs("WrongHitFlashCount")]
+        private int _wrongHitFlashCount = 2;
+        [SerializeField, Min(0.05f), FormerlySerializedAs("WrongHitFlashDuration")]
+        private float _wrongHitFlashDuration = 0.1f;
+
+        public float MoveIntervalSeconds => _moveIntervalSeconds;
+        public int MoveStepCount => _moveStepCount;
+        public float PendingMoveThreshold => _pendingMoveThreshold;
+        public AnimationCurve ScaleCurve => _scaleCurve;
+        public float MoveDuration => _moveDuration;
+        public int WrongHitFlashCount => _wrongHitFlashCount;
+        public float WrongHitFlashDuration => _wrongHitFlashDuration;
 
         private void OnValidate() => Validate();
 
         public void Validate()
         {
-            if (MoveDuration >= MoveIntervalSeconds)
+            if (_moveDuration >= _moveIntervalSeconds)
             {
                 Debug.LogError("[MonsterConfig] MoveDuration 必须小于 MoveIntervalSeconds，已自动修正");
-                MoveDuration = MoveIntervalSeconds * 0.3f;
+                _moveDuration = _moveIntervalSeconds * 0.3f;
             }
-            if (PendingMoveThreshold >= MoveIntervalSeconds)
+            if (_pendingMoveThreshold >= _moveIntervalSeconds)
             {
                 Debug.LogError("[MonsterConfig] PendingMoveThreshold 必须小于 MoveIntervalSeconds，已自动修正");
-                PendingMoveThreshold = MoveIntervalSeconds * 0.5f;
+                _pendingMoveThreshold = _moveIntervalSeconds * 0.5f;
             }
+        }
+
+        private static AnimationCurve DefaultScaleCurve()
+        {
+            return new AnimationCurve(
+                new Keyframe(0f, 0.01f),
+                new Keyframe(2f, 0.50f),
+                new Keyframe(5f, 1.00f),
+                new Keyframe(7f, 1.50f)
+            );
         }
     }
 }

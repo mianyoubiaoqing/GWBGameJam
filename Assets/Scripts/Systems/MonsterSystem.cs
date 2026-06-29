@@ -45,12 +45,12 @@ namespace GWBGameJam
 
         private void OnEnable()
         {
-            EventBus<OnGameStateChanged>.Subscribe(HandleGameStateChanged);
+            EventBus<OnLevelStarted>.Subscribe(HandleLevelStarted);
         }
 
         private void OnDestroy()
         {
-            EventBus<OnGameStateChanged>.Unsubscribe(HandleGameStateChanged);
+            EventBus<OnLevelStarted>.Unsubscribe(HandleLevelStarted);
         }
 
         public bool SpawnMonster(int laneIndex, MonsterData data)
@@ -63,25 +63,11 @@ namespace GWBGameJam
                 Debug.LogWarning($"[MonsterSystem] SpawnMonster: lane {laneIndex} 的 MonsterData 为 null");
                 return false;
             }
+            data.ValidateTargetDoughState();
 
             MonsterController mc = Instantiate(_monsterPrefab, _monsterContainer);
             mc.Initialize(laneIndex, data, _config, _laneManager);
             _monsters[laneIndex] = mc;
-
-            // ╔══════════════════ DEBUG 区域：怪物生成点 ══════════════════╗
-            // 整块删除即可移除；DebugLogSpawn 改 false 关闭本区域
-#pragma warning disable 162
-            const bool DebugLogSpawn = true;
-            if (DebugLogSpawn)
-            {
-                string dir = System.IO.Path.Combine(Application.dataPath, "../Debug");
-                System.IO.Directory.CreateDirectory(dir);
-                System.IO.File.AppendAllText(
-                    System.IO.Path.Combine(dir, "MonsterSpawn.log"),
-                    $"[{System.DateTime.Now:HH:mm:ss}] lane={laneIndex} type={data.name} spawnPos={(Vector2)mc.transform.position}\n");
-            }
-#pragma warning restore 162
-            // ╚════════════════════════════════════════════════════════════╝
 
             EventBus<OnMonsterSpawned>.Publish(new OnMonsterSpawned(laneIndex, data));
             return true;
@@ -123,9 +109,15 @@ namespace GWBGameJam
             return monster.GetTargetPosition();
         }
 
-        private void HandleGameStateChanged(OnGameStateChanged e)
+        private void HandleLevelStarted(OnLevelStarted e)
         {
-            // TimeScale=0 on pause naturally freezes all Update timers and WaitForSeconds coroutines
+            for (int i = 0; i < _monsters.Length; i++)
+            {
+                MonsterController monster = _monsters[i];
+                if (monster != null)
+                    Destroy(monster.gameObject);
+                _monsters[i] = null;
+            }
         }
     }
 }

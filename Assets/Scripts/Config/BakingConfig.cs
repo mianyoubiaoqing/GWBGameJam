@@ -1,39 +1,47 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace GWBGameJam
 {
     [CreateAssetMenu(fileName = "BakingConfig", menuName = "GWBGameJam/Configs/BakingConfig")]
     public class BakingConfig : ScriptableObject
     {
-        [Min(0.1f)] public float UndercookedDuration = 0.5f;
-        [Min(0.1f)] public float CookedDuration = 1.5f;
-        [Min(0.1f)] public float BurntForcedThrowDuration = 2.5f;
+        [SerializeField, Min(0.1f), FormerlySerializedAs("UndercookedDuration")]
+        private float _undercookedDuration = 0.5f;
+        [SerializeField, Min(0.1f), FormerlySerializedAs("CookedDuration")]
+        private float _cookedDuration = 1.5f;
+        [SerializeField, Min(0.1f), FormerlySerializedAs("BurntForcedThrowDuration")]
+        private float _burntForcedThrowDuration = 2.5f;
+
+        public float UndercookedDuration => _undercookedDuration;
+        public float CookedDuration => _cookedDuration;
+        public float BurntForcedThrowDuration => _burntForcedThrowDuration;
 
         private void OnValidate()
         {
-            if (CookedDuration <= UndercookedDuration)
+            if (_cookedDuration <= _undercookedDuration)
             {
                 Debug.LogError("[BakingConfig] CookedDuration 必须大于 UndercookedDuration，已自动修正");
-                CookedDuration = UndercookedDuration + 0.1f;
+                _cookedDuration = _undercookedDuration + 0.1f;
             }
-            if (BurntForcedThrowDuration <= CookedDuration)
+            if (_burntForcedThrowDuration <= _cookedDuration)
             {
                 Debug.LogError("[BakingConfig] BurntForcedThrowDuration 必须大于 CookedDuration，已自动修正");
-                BurntForcedThrowDuration = CookedDuration + 0.1f;
+                _burntForcedThrowDuration = _cookedDuration + 0.1f;
             }
         }
 
         public void Validate()
         {
-            if (CookedDuration <= UndercookedDuration)
+            if (_cookedDuration <= _undercookedDuration)
             {
                 Debug.LogError("[BakingConfig] CookedDuration 必须大于 UndercookedDuration，已自动修正");
-                CookedDuration = UndercookedDuration + 0.1f;
+                _cookedDuration = _undercookedDuration + 0.1f;
             }
-            if (BurntForcedThrowDuration <= CookedDuration)
+            if (_burntForcedThrowDuration <= _cookedDuration)
             {
                 Debug.LogError("[BakingConfig] BurntForcedThrowDuration 必须大于 CookedDuration，已自动修正");
-                BurntForcedThrowDuration = CookedDuration + 0.1f;
+                _burntForcedThrowDuration = _cookedDuration + 0.1f;
             }
         }
     }

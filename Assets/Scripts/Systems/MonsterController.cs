@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 namespace GWBGameJam
@@ -20,28 +19,28 @@ namespace GWBGameJam
         private Vector2 _moveFromPos;
         private Vector2 _moveToPos;
         private float _moveProgress;
+        private float _wrongHitTimer;
+        private int _wrongHitCompletedCount;
+        private bool _wrongHitActive;
+        private bool _wrongHitShowingHit;
+        private bool _hasVisualError;
+        private bool _hasSpriteRendererError;
 
         // _config may be null before Initialize; guard before reading
         public bool IsPendingMove => _config != null && !_isMoving && _moveTimer <= _config.PendingMoveThreshold;
 
-        // ╔══════════════════ DEBUG 区域：怪物位置 ══════════════════╗
-        // 整块删除即可移除；DebugLogPosition 改 false 关闭本区域
-        private const bool DebugLogPosition = true;
-        private const float DebugPositionInterval = 1f;
-        private float _debugPosTimer;
-        // ╚══════════════════════════════════════════════════════════╝
-
-        // ╔══════════════════ DEBUG 区域：怪物 Console 日志 ══════════════════╗
-        // 整块删除即可移除；DebugConsole 改 false 关闭本区域
-        private const bool DebugConsole = true;
-        // ╚══════════════════════════════════════════════════════════════════╝
-
         private void Awake()
         {
             if (_visual == null)
+            {
                 Debug.LogError("[MonsterController] _visual 未赋值");
+                _hasVisualError = true;
+            }
             if (_spriteRenderer == null)
+            {
                 Debug.LogError("[MonsterController] _spriteRenderer 未赋值");
+                _hasSpriteRendererError = true;
+            }
         }
 
         public void Initialize(int laneIndex, MonsterData data, MonsterConfig config, LaneManager laneManager)
@@ -53,20 +52,12 @@ namespace GWBGameJam
             _posIndex = 0;
             _moveTimer = config.MoveIntervalSeconds;
 
-            _spriteRenderer.sprite = data.IdleSprite;
-            transform.position = _laneManager.GetWaypoint(laneIndex, 0);
-            ApplyScale(0f);
+            if (!_hasSpriteRendererError)
+                _spriteRenderer.sprite = data.IdleSprite;
 
-            // ╔══════════════════ DEBUG 区域：怪物 Console 日志 ══════════════════╗
-            if (DebugConsole)
-            {
-                string spriteName = _spriteRenderer != null && _spriteRenderer.sprite != null ? _spriteRenderer.sprite.name : "NULL";
-                string color = _spriteRenderer != null ? _spriteRenderer.color.ToString() : "-";
-                int sortOrder = _spriteRenderer != null ? _spriteRenderer.sortingOrder : 0;
-                float vScale = _visual != null ? _visual.localScale.x : 0f;
-                Debug.Log($"[Monster] 生成 lane={laneIndex} type={data.name} pos={(Vector2)transform.position} sprite={spriteName} color={color} sortOrder={sortOrder} visualScale={vScale:F2} active={gameObject.activeInHierarchy}");
-            }
-            // ╚══════════════════════════════════════════════════════════════════╝
+            if (_laneManager.TryGetWaypoint(laneIndex, 0, out Vector2 spawnPosition))
+                transform.position = spawnPosition;
+            ApplyScale(0f);
         }
 
         private void Update()
@@ -77,23 +68,7 @@ namespace GWBGameJam
             else
                 UpdateTimer();
 
-            // ╔══════════════════ DEBUG 区域：怪物位置 ══════════════════╗
-#pragma warning disable 162
-            if (DebugLogPosition)
-            {
-                _debugPosTimer += Time.deltaTime;
-                if (_debugPosTimer >= DebugPositionInterval)
-                {
-                    _debugPosTimer = 0f;
-                    string dir = System.IO.Path.Combine(Application.dataPath, "../Debug");
-                    System.IO.Directory.CreateDirectory(dir);
-                    System.IO.File.AppendAllText(
-                        System.IO.Path.Combine(dir, "MonsterPosition.log"),
-                        $"[{System.DateTime.Now:HH:mm:ss}] lane={LaneIndex} posIndex={_posIndex} pos={(Vector2)transform.position} scale={(_visual != null ? _visual.localScale.x : 0f):F3}\n");
-                }
-            }
-#pragma warning restore 162
-            // ╚══════════════════════════════════════════════════════════╝
+            UpdateWrongHitFeedback();
         }
 
         private void UpdateTimer()
@@ -112,15 +87,14 @@ namespace GWBGameJam
             }
 
             _targetPosIndex = _posIndex + 1;
-            _moveFromPos = _laneManager.GetWaypoint(LaneIndex, _posIndex);
-            _moveToPos = _laneManager.GetWaypoint(LaneIndex, _targetPosIndex);
+            if (!_laneManager.TryGetWaypoint(LaneIndex, _posIndex, out _moveFromPos)
+                || !_laneManager.TryGetWaypoint(LaneIndex, _targetPosIndex, out _moveToPos))
+            {
+                ReachedTable();
+                return;
+            }
             _moveProgress = 0f;
             _isMoving = true;
-
-            // ╔══════ DEBUG：怪物移动 ══════╗
-            if (DebugConsole)
-                Debug.Log($"[Monster] 移动 lane={LaneIndex} 步 {_posIndex}→{_targetPosIndex}  {_moveFromPos} → {_moveToPos}");
-            // ╚════════════════════════════╝
         }
 
         private void UpdateMovement()
@@ -142,17 +116,13 @@ namespace GWBGameJam
 
         private void ApplyScale(float posLerp)
         {
-            if (_visual == null) return;
+            if (_hasVisualError) return;
             float displayScale = Data != null ? Data.DisplayScale : 1f;
             _visual.localScale = Vector3.one * (_config.ScaleCurve.Evaluate(posLerp) * displayScale);
         }
 
         private void ReachedTable()
         {
-            // ╔══════ DEBUG：到达桌子 ══════╗
-            if (DebugConsole)
-                Debug.Log($"[Monster] 到达桌子 lane={LaneIndex}");
-            // ╚════════════════════════════╝
             EventBus<OnMonsterReachedTable>.Publish(new OnMonsterReachedTable(LaneIndex));
             Destroy(gameObject);
         }
@@ -165,31 +135,44 @@ namespace GWBGameJam
 
         public void TriggerWrongHitFeedback()
         {
-            StartCoroutine(FlashCoroutine());
+            if (_hasSpriteRendererError || Data == null) return;
+
+            _wrongHitTimer = 0f;
+            _wrongHitCompletedCount = 0;
+            _wrongHitActive = true;
+            _wrongHitShowingHit = true;
+            _spriteRenderer.sprite = Data.HitSprite;
         }
 
-        private IEnumerator FlashCoroutine()
+        private void UpdateWrongHitFeedback()
         {
-            for (int i = 0; i < _config.WrongHitFlashCount; i++)
+            if (!_wrongHitActive || _hasSpriteRendererError || Data == null) return;
+
+            _wrongHitTimer += Time.deltaTime;
+            if (_wrongHitTimer < _config.WrongHitFlashDuration) return;
+
+            _wrongHitTimer = 0f;
+            _wrongHitShowingHit = !_wrongHitShowingHit;
+
+            if (_wrongHitShowingHit)
             {
                 _spriteRenderer.sprite = Data.HitSprite;
-                yield return new WaitForSeconds(_config.WrongHitFlashDuration);
-                _spriteRenderer.sprite = Data.IdleSprite;
-                yield return new WaitForSeconds(_config.WrongHitFlashDuration);
+                return;
             }
+
+            _spriteRenderer.sprite = Data.IdleSprite;
+            _wrongHitCompletedCount++;
+            if (_wrongHitCompletedCount >= _config.WrongHitFlashCount)
+                _wrongHitActive = false;
         }
 
         public Vector2 GetTargetPosition()
         {
             if (_config == null) return Vector2.zero;
+            Vector2 position;
             if (IsPendingMove && _posIndex < _config.MoveStepCount - 1)
-                return _laneManager.GetWaypoint(LaneIndex, _posIndex + 1);
-            return _laneManager.GetWaypoint(LaneIndex, _posIndex);
-        }
-
-        private void OnDestroy()
-        {
-            StopAllCoroutines();
+                return _laneManager.TryGetWaypoint(LaneIndex, _posIndex + 1, out position) ? position : (Vector2)transform.position;
+            return _laneManager.TryGetWaypoint(LaneIndex, _posIndex, out position) ? position : (Vector2)transform.position;
         }
     }
 }

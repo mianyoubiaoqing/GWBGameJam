@@ -6,6 +6,7 @@ namespace GWBGameJam
     {
         [SerializeField] private LaneWaypointConfig _waypointConfig;
         [SerializeField] private MonsterConfig _monsterConfig;
+        [SerializeField] private Camera _camera;
         [SerializeField, Min(1f)] private float _hoverScaleMultiplier = 1.05f;
         [SerializeField] private LaneVisualData[] _laneVisuals;
 
@@ -23,13 +24,11 @@ namespace GWBGameJam
         private bool _isBakingActive;
         private bool _hasConfigError;
         private bool _needsHoverCheck;
-        private Camera _mainCamera;
 
         private bool IsHoverActive => _isPlayingState && _isBakingActive && !_hasConfigError;
 
         private void Awake()
         {
-            _mainCamera = Camera.main;
             ValidateConfig();
         }
 
@@ -44,6 +43,12 @@ namespace GWBGameJam
             if (_monsterConfig == null)
             {
                 Debug.LogError("[LaneManager] MonsterConfig 未赋值");
+                _hasConfigError = true;
+                return;
+            }
+            if (_camera == null)
+            {
+                Debug.LogError("[LaneManager] Camera 未赋值");
                 _hasConfigError = true;
                 return;
             }
@@ -77,14 +82,10 @@ namespace GWBGameJam
             _needsHoverCheck = false;
 
             // Resume 后鼠标未移动，OnMouseEnter 不会重新触发，主动检测一次
-            Vector2 mouseWorld = _mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 mouseWorld = _camera.ScreenToWorldPoint(Input.mousePosition);
             var hit = Physics2D.OverlapPoint(mouseWorld);
-            if (hit != null)
-            {
-                var detector = hit.GetComponent<LaneHoverDetector>();
-                if (detector != null)
-                    SetHoveredLane(detector.LaneIndex);
-            }
+            if (hit != null && hit.TryGetComponent(out LaneHoverDetector detector))
+                SetHoveredLane(detector.LaneIndex);
         }
 
         private void HandleGameStateChanged(OnGameStateChanged e)
@@ -155,21 +156,23 @@ namespace GWBGameJam
                 v.Visual.localScale = hovered ? Vector3.one * _hoverScaleMultiplier : Vector3.one;
         }
 
-        public Vector2 GetWaypoint(int laneIndex, int posIndex)
+        public bool TryGetWaypoint(int laneIndex, int posIndex, out Vector2 position)
         {
-            if (_hasConfigError) return Vector2.zero;
+            position = Vector2.zero;
+            if (_hasConfigError) return false;
             if (laneIndex < 0 || laneIndex >= _waypointConfig.Lanes.Length)
             {
-                Debug.LogWarning($"[LaneManager] GetWaypoint: laneIndex {laneIndex} 越界");
-                return Vector2.zero;
+                Debug.LogWarning($"[LaneManager] TryGetWaypoint: laneIndex {laneIndex} 越界");
+                return false;
             }
             var positions = _waypointConfig.Lanes[laneIndex].Positions;
             if (posIndex < 0 || posIndex >= positions.Length)
             {
-                Debug.LogWarning($"[LaneManager] GetWaypoint: posIndex {posIndex} 越界（laneIndex={laneIndex}）");
-                return Vector2.zero;
+                Debug.LogWarning($"[LaneManager] TryGetWaypoint: posIndex {posIndex} 越界（laneIndex={laneIndex}）");
+                return false;
             }
-            return positions[posIndex];
+            position = positions[posIndex];
+            return true;
         }
 
         public int GetHoveredLaneIndex() => _hoveredLaneIndex;

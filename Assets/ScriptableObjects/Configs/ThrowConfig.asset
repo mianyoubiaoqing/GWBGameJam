@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4687f6c3d68da2f4dbf2d28621f281e0, type: 3}
   m_Name: ThrowConfig
   m_EditorClassIdentifier: 
-  ThrowDuration: 0.4
-  PeakHeight: 3
+  _throwDuration: 0.4
+  _peakHeight: 3

@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19ac54ad3da8a684891d5e26125fff6e, type: 3}
   m_Name: BakingConfig
   m_EditorClassIdentifier: 
-  UndercookedDuration: 0.5
-  CookedDuration: 1.5
-  BurntForcedThrowDuration: 2.5
+  _undercookedDuration: 0.5
+  _cookedDuration: 1.5
+  _burntForcedThrowDuration: 2.5

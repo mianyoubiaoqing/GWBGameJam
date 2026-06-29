@@ -5,16 +5,21 @@ namespace GWBGameJam
     [RequireComponent(typeof(Camera))]
     public class AspectRatioEnforcer : MonoBehaviour
     {
+        [SerializeField] private Camera _camera;
         [SerializeField] private float _targetWidth = 1920f;
         [SerializeField] private float _targetHeight = 1080f;
 
-        private Camera _camera;
         private int _lastScreenWidth;
         private int _lastScreenHeight;
 
         private void Awake()
         {
-            _camera = GetComponent<Camera>();
+            if (_camera == null)
+            {
+                Debug.LogError("[AspectRatioEnforcer] Camera 未赋值");
+                enabled = false;
+                return;
+            }
             ApplyLetterbox();
         }
 

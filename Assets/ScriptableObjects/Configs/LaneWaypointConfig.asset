@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4b59fcbcdae6364b99833c5a3082812, type: 3}
   m_Name: LaneWaypointConfig
   m_EditorClassIdentifier: 
-  Lanes:
+  _lanes:
   - Positions:
     - {x: 762.2346, y: 837.306}
     - {x: 675.8838, y: 764.4732}
@@ -58,4 +58,4 @@ MonoBehaviour:
     - {x: 1579.5964, y: 473.14185}
     - {x: 1669.5667, y: 400.309}
     - {x: 1759.5369, y: 327.47617}
-  RecordedStepCount: 8
+  _recordedStepCount: 8

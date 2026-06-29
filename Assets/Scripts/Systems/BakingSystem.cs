@@ -124,12 +124,21 @@ namespace GWBGameJam
             bool wasPlaying = _isPlayingState;
             _isPlayingState = e.NewState == GameState.Playing;
 
-            // Resume from Pause preserves mid-bake state; other Playing transitions (e.g., LevelTransition→Playing) reset it
-            if (!wasPlaying && _isPlayingState && e.PreviousState != GameState.Paused
-                && _currentBakingState != BakingState.Idle)
+            if (!wasPlaying && _isPlayingState && ShouldResetWhenEnteringPlaying(e.PreviousState))
             {
                 ResetToIdle();
             }
+        }
+
+        private static bool ShouldResetWhenEnteringPlaying(GameState previousState)
+        {
+            return previousState switch
+            {
+                GameState.LevelTransition => true,
+                GameState.Death => true,
+                GameState.Victory => true,
+                _ => false
+            };
         }
 
         private void ResetToIdle()

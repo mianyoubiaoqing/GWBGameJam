@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea4bd98eda0e1be45b8828e0e1327e8c, type: 3}
   m_Name: DoughConfig
   m_EditorClassIdentifier: 
-  FlourClickAmount: 0.75
-  WaterFillRate: 0.5
-  InitialRatio: 1
-  MaxRatio: 3
+  _flourClickAmount: 0.75
+  _waterFillRate: 0.5
+  _initialRatio: 1
+  _maxRatio: 3

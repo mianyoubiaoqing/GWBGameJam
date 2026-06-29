@@ -179,8 +179,9 @@ namespace GWBGameJam
                 }
             }
 
-            if (_waypointConfig.Lanes == null || _waypointConfig.Lanes.Length != laneCount)
-                _waypointConfig.Lanes = new LaneWaypoints[laneCount];
+            LaneWaypoints[] lanes = _waypointConfig.Lanes;
+            if (lanes == null || lanes.Length != laneCount)
+                lanes = new LaneWaypoints[laneCount];
 
             _previewPositions = new Vector3[laneCount * stepCount];
             int previewIdx = 0;
@@ -206,9 +207,9 @@ namespace GWBGameJam
                 Vector2 bLeft  = rowB0.x <= rowB1.x ? rowB0 : rowB1;
                 Vector2 bRight = rowB0.x <= rowB1.x ? rowB1 : rowB0;
 
-                if (_waypointConfig.Lanes[l] == null)
-                    _waypointConfig.Lanes[l] = new LaneWaypoints();
-                _waypointConfig.Lanes[l].Positions = new Vector2[stepCount];
+                if (lanes[l] == null)
+                    lanes[l] = new LaneWaypoints();
+                lanes[l].Positions = new Vector2[stepCount];
 
                 for (int i = 0; i < stepCount; i++)
                 {
@@ -216,12 +217,12 @@ namespace GWBGameJam
                     float xl  = HorizontalIntersect(aLeft,  bLeft,  y, l, i, "left");
                     float xr  = HorizontalIntersect(aRight, bRight, y, l, i, "right");
                     Vector2 mid = new Vector2((xl + xr) * 0.5f, y);
-                    _waypointConfig.Lanes[l].Positions[i] = mid;
+                    lanes[l].Positions[i] = mid;
                     _previewPositions[previewIdx++] = mid;
                 }
             }
 
-            _waypointConfig.RecordedStepCount = stepCount;
+            _waypointConfig.SetWaypoints(lanes, stepCount);
             EditorUtility.SetDirty(_waypointConfig);
             AssetDatabase.SaveAssets();
 

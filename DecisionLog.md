@@ -325,3 +325,20 @@ Config：待移动阈值 0.5s（Balance 可调）。
 > 我想增加（或修改）这个功能，请先分析它会影响哪些 Spec、哪些系统、哪些配置，以及是否需要调整架构。不要写代码。
 
 ---
+
+## 2026-06-29（代码审查修复）
+
+**[Tech] EventBus 发布期订阅变更改为待添加/待移除双队列**
+原因：发布过程中取消订阅时，旧实现只改 add buffer，不会从主 handler 列表移除，导致取消订阅永久失效。双队列在 Publish 结束后统一清算，且本轮尚未执行的已取消 handler 会被跳过。
+
+**[Tech] Config ScriptableObject 改为私有序列化字段 + 只读属性**
+原因：SO 是配置资产，运行时代码不应随意写入字段。使用 `[SerializeField] private` 保留 Inspector 可编辑能力，用只读属性给系统读取；同时使用 `FormerlySerializedAs` 和资产字段迁移，避免现有数据丢失。
+
+**[Tech] MonsterData.TargetDoughState 使用专用 PropertyDrawer 限定有效枚举**
+原因：策划只应选择 Softest / Medium / Hardest，None / TooSoft / TooHard 会导致怪物无法被击杀。Editor 下拉过滤无效选项，运行时 Validate 自动修正到 Medium。
+
+**[Tech] 怪物错误命中闪白改为 Update 计时**
+原因：项目计时规范要求使用 Update + Time.deltaTime，避免协程/WaitForSeconds 与暂停逻辑边界不一致。闪白状态与移动状态独立，错误命中反馈期间怪物继续移动。
+
+**[Tech] LaneManager 和 AspectRatioEnforcer 不再依赖 Camera.main**
+原因：相机引用应由 Inspector 注入，避免运行时隐式查找和 Tag 依赖；Game.unity 已显式绑定 Main Camera 的 Camera 组件。

@@ -56,16 +56,17 @@ namespace GWBGameJam
             int laneCount = 5;
             int stepCount = _monsterConfig.MoveStepCount;
 
-            if (_waypointConfig.Lanes == null || _waypointConfig.Lanes.Length != laneCount)
-                _waypointConfig.Lanes = new LaneWaypoints[laneCount];
+            LaneWaypoints[] lanes = _waypointConfig.Lanes;
+            if (lanes == null || lanes.Length != laneCount)
+                lanes = new LaneWaypoints[laneCount];
 
             for (int l = 0; l < laneCount; l++)
             {
                 float tLane = l / (float)(laneCount - 1); // 0 ~ 1
 
-                if (_waypointConfig.Lanes[l] == null)
-                    _waypointConfig.Lanes[l] = new LaneWaypoints();
-                _waypointConfig.Lanes[l].Positions = new Vector2[stepCount];
+                if (lanes[l] == null)
+                    lanes[l] = new LaneWaypoints();
+                lanes[l].Positions = new Vector2[stepCount];
 
                 for (int i = 0; i < stepCount; i++)
                 {
@@ -79,11 +80,11 @@ namespace GWBGameJam
                     // 居中偏移修正：使每条球道的x在正确的区间内
                     x = -totalWidthAtY * 0.5f + tLane * totalWidthAtY + laneWidthAtY * 0.5f;
 
-                    _waypointConfig.Lanes[l].Positions[i] = new Vector2(x, y);
+                    lanes[l].Positions[i] = new Vector2(x, y);
                 }
             }
 
-            _waypointConfig.RecordedStepCount = stepCount;
+            _waypointConfig.SetWaypoints(lanes, stepCount);
             EditorUtility.SetDirty(_waypointConfig);
             AssetDatabase.SaveAssets();
             SceneView.RepaintAll();

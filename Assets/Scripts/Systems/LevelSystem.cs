@@ -44,6 +44,11 @@ namespace GWBGameJam
                 Debug.LogError("[LevelSystem] _availableMonsterTypes 为空，请在 Inspector 中配置怪物类型");
                 _hasConfigError = true;
             }
+            if (_levelConfig != null && _levelConfig.LevelCount == 0)
+            {
+                Debug.LogError("[LevelSystem] LevelConfig.Levels 为空");
+                _hasConfigError = true;
+            }
         }
 
         private void OnEnable()
@@ -113,13 +118,13 @@ namespace GWBGameJam
             if (_hasConfigError) return;
 
             _currentLevelIndex = e.LevelIndex;
-            if (_currentLevelIndex >= _levelConfig.Levels.Length)
+            if (_currentLevelIndex >= _levelConfig.LevelCount)
             {
                 Debug.LogWarning($"[LevelSystem] levelIndex {_currentLevelIndex} 越界，使用最后一关数据");
-                _currentLevelIndex = _levelConfig.Levels.Length - 1;
+                _currentLevelIndex = _levelConfig.LevelCount - 1;
             }
 
-            _currentLevelData = _levelConfig.Levels[_currentLevelIndex];
+            _currentLevelData = _levelConfig.GetLevel(_currentLevelIndex);
             _spawnedCount = 0;
             _exitedCount = 0;
             // 初始化为一个完整间隔，使进入 PLAYING 的第一帧立即触发首次生成（t=0 出怪）

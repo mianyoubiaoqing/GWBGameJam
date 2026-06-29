@@ -110,3 +110,9 @@ ProjectSettings/ProjectVersion.txt
 SPEC_QA_AND_ASSETS.txt
 Packages/packages-lock.json
 ProjectSettings/PackageManagerSettings.asset
+
+# Local MCP / AI client configuration
+.mcp.json
+.mcp/
+.codex/
+ProjectSettings/McpUnitySettings.json

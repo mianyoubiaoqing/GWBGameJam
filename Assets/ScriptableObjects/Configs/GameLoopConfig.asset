@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a23814b51d6c2c459fb8cd02f29f192, type: 3}
   m_Name: GameLoopConfig
   m_EditorClassIdentifier: 
-  TotalLevels: 3
-  DevSpeedMultiplier: 3
-  LevelTransitionDuration: 0
+  _totalLevels: 3
+  _devSpeedMultiplier: 3
+  _levelTransitionDuration: 0

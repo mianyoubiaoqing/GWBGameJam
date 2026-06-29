@@ -400,6 +400,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _waypointConfig: {fileID: 11400000, guid: 69a7abe371fb9fa4abc6c8535f75cbdb, type: 2}
   _monsterConfig: {fileID: 11400000, guid: 51f0cbe773c13944b9c6ca07713ca68c, type: 2}
+  _camera: {fileID: 761840069}
   _hoverScaleMultiplier: 1.05
   _laneVisuals:
   - Visual: {fileID: 1561734419}
@@ -2326,6 +2327,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40ebfc84454673c43a3bb6e6df4761ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _camera: {fileID: 761840069}
   _targetWidth: 1920
   _targetHeight: 1080
 --- !u!1 &769264204

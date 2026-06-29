@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09e2744841bb5334487d91bebc8f688c, type: 3}
   m_Name: DoughStateBoundaryConfig
   m_EditorClassIdentifier: 
-  ThresholdSoftToSoftest: 1.75
-  ThresholdSoftestToMedium: 1.25
-  ThresholdMediumToHardest: 0.75
-  ThresholdHardestToHard: 0.25
-  ToleranceHalfWidth: 0.25
+  _thresholdSoftToSoftest: 1.75
+  _thresholdSoftestToMedium: 1.25
+  _thresholdMediumToHardest: 0.75
+  _thresholdHardestToHard: 0.25
+  _toleranceHalfWidth: 0.25
