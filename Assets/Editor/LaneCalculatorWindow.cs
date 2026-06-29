@@ -194,15 +194,17 @@ namespace GWBGameJam
                 for (int v = 0; v < col.points.Length; v++)
                     worldVerts[v] = col.transform.TransformPoint(col.points[v]);
 
-                // 4-vertex trapezoid: sort by X → left pair (smaller X) / right pair (larger X)
-                System.Array.Sort(worldVerts, (a, b) => a.x.CompareTo(b.x));
+                // 先按 Y 分上下两排，再在每排内按 X 分左右，得到两条真正倾斜的轨道线。
+                // 不能直接按 X 排序：透视球道往两侧倾斜时，两个底顶点会共享较小 X，导致左右边被错认成上下两条水平线。
+                System.Array.Sort(worldVerts, (a, b) => a.y.CompareTo(b.y));
 
-                Vector2 leftBottom = worldVerts[0], leftTop    = worldVerts[1];
-                Vector2 rightBottom = worldVerts[2], rightTop  = worldVerts[3];
+                Vector2 rowA0 = worldVerts[0], rowA1 = worldVerts[1];
+                Vector2 rowB0 = worldVerts[2], rowB1 = worldVerts[3];
 
-                // Sort each edge pair by Y ascending (bottom < top)
-                if (leftBottom.y  > leftTop.y)    (leftBottom,  leftTop)   = (leftTop,  leftBottom);
-                if (rightBottom.y > rightTop.y)   (rightBottom, rightTop)  = (rightTop, rightBottom);
+                Vector2 aLeft  = rowA0.x <= rowA1.x ? rowA0 : rowA1;
+                Vector2 aRight = rowA0.x <= rowA1.x ? rowA1 : rowA0;
+                Vector2 bLeft  = rowB0.x <= rowB1.x ? rowB0 : rowB1;
+                Vector2 bRight = rowB0.x <= rowB1.x ? rowB1 : rowB0;
 
                 if (_waypointConfig.Lanes[l] == null)
                     _waypointConfig.Lanes[l] = new LaneWaypoints();
@@ -211,8 +213,8 @@ namespace GWBGameJam
                 for (int i = 0; i < stepCount; i++)
                 {
                     float y   = _calculatorData.WaypointYPositions[i];
-                    float xl  = HorizontalIntersect(leftBottom,  leftTop,  y, l, i, "left");
-                    float xr  = HorizontalIntersect(rightBottom, rightTop, y, l, i, "right");
+                    float xl  = HorizontalIntersect(aLeft,  bLeft,  y, l, i, "left");
+                    float xr  = HorizontalIntersect(aRight, bRight, y, l, i, "right");
                     Vector2 mid = new Vector2((xl + xr) * 0.5f, y);
                     _waypointConfig.Lanes[l].Positions[i] = mid;
                     _previewPositions[previewIdx++] = mid;

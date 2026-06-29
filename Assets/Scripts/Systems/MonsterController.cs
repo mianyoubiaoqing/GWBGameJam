@@ -31,6 +31,11 @@ namespace GWBGameJam
         private float _debugPosTimer;
         // ╚══════════════════════════════════════════════════════════╝
 
+        // ╔══════════════════ DEBUG 区域：怪物 Console 日志 ══════════════════╗
+        // 整块删除即可移除；DebugConsole 改 false 关闭本区域
+        private const bool DebugConsole = true;
+        // ╚══════════════════════════════════════════════════════════════════╝
+
         private void Awake()
         {
             if (_visual == null)
@@ -51,6 +56,17 @@ namespace GWBGameJam
             _spriteRenderer.sprite = data.IdleSprite;
             transform.position = _laneManager.GetWaypoint(laneIndex, 0);
             ApplyScale(0f);
+
+            // ╔══════════════════ DEBUG 区域：怪物 Console 日志 ══════════════════╗
+            if (DebugConsole)
+            {
+                string spriteName = _spriteRenderer != null && _spriteRenderer.sprite != null ? _spriteRenderer.sprite.name : "NULL";
+                string color = _spriteRenderer != null ? _spriteRenderer.color.ToString() : "-";
+                int sortOrder = _spriteRenderer != null ? _spriteRenderer.sortingOrder : 0;
+                float vScale = _visual != null ? _visual.localScale.x : 0f;
+                Debug.Log($"[Monster] 生成 lane={laneIndex} type={data.name} pos={(Vector2)transform.position} sprite={spriteName} color={color} sortOrder={sortOrder} visualScale={vScale:F2} active={gameObject.activeInHierarchy}");
+            }
+            // ╚══════════════════════════════════════════════════════════════════╝
         }
 
         private void Update()
@@ -100,6 +116,11 @@ namespace GWBGameJam
             _moveToPos = _laneManager.GetWaypoint(LaneIndex, _targetPosIndex);
             _moveProgress = 0f;
             _isMoving = true;
+
+            // ╔══════ DEBUG：怪物移动 ══════╗
+            if (DebugConsole)
+                Debug.Log($"[Monster] 移动 lane={LaneIndex} 步 {_posIndex}→{_targetPosIndex}  {_moveFromPos} → {_moveToPos}");
+            // ╚════════════════════════════╝
         }
 
         private void UpdateMovement()
@@ -128,6 +149,10 @@ namespace GWBGameJam
 
         private void ReachedTable()
         {
+            // ╔══════ DEBUG：到达桌子 ══════╗
+            if (DebugConsole)
+                Debug.Log($"[Monster] 到达桌子 lane={LaneIndex}");
+            // ╚════════════════════════════╝
             EventBus<OnMonsterReachedTable>.Publish(new OnMonsterReachedTable(LaneIndex));
             Destroy(gameObject);
         }

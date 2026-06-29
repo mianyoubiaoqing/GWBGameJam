@@ -831,3 +831,41 @@ Architecture / CodingRules / TaskBreakdown / ManualInstructions / Code 已完全
   - 下一个真问题：球道 X 挤成两堆（lane0/1≈597，lane3/4≈1297），LaneCalculator 从 PolygonCollider2D 烘焙的 X 算错（即「球道点位错误」），待修
 
 ========================================
+
+[2026-06-28 修复球道点位 bug — Bake 顶点分类]
+指令：看一下球道点位 bug 并修复（用户提供了 collider 截图）
+操作：
+  读 Game.unity 确认每条 collider 恰为 4 顶点；几何正确，bug 在 Bake() 顶点分类
+  根因：原算法「按 X 排序，小的两个=左边，大的两个=右边」在倾斜透视球道上失效——
+        两个底顶点共享较小 X，被错认成左边 → 左/右边退化成上/下两条水平线 → HorizontalIntersect 遇 dy≈0 返回固定 X → 整条道 waypoint 的 X 坍缩成常数
+  修复 Assets/Editor/LaneCalculatorWindow.cs Bake()：改为「先按 Y 分上下两排，再每排内按 X 分左右」，得到两条真正倾斜的轨道线（aLeft↔bLeft / aRight↔bRight）
+  实测验证：示例道修复后中线由 X≈1015(底)→1350(顶) 正确倾斜，不再坍缩
+状态：完成（代码）；待用户重新打开 Lane Waypoint Calculator 点 Bake 重新烘焙
+备注：纯 Editor 工具算法改动，不碰 Spec/Config；AutoDistribute 的 Y 计算不受影响无需改
+
+========================================
+
+[2026-06-28 怪物 Console 日志（实时诊断不可见问题）]
+指令：重新烘焙后仍看不到怪物，要求打印 console log（生成/移动）
+操作：
+  烘焙修复已确认生效（日志显示 5 条道 X 正确分开、斜线、缩放 100~1500），判定为纯渲染/视角问题
+  在 MonsterController.cs 加 DEBUG 区域「怪物 Console 日志」(const bool DebugConsole)：
+    - 生成：Debug.Log 带 lane/type/pos/sprite名/color/sortingOrder/visualScale/active —— 直接暴露渲染问题（sprite=NULL / 透明 / 层级 / 缩放0 / 未激活）
+    - 移动：StartMoving 打印 步 N→N+1 + 起止世界坐标
+    - 到达桌子：ReachedTable 打印
+  横幅区域 + const bool 可整块删除
+状态：完成
+备注：用 console（实时）而非文件，因用户要在 Editor 里现场看；待用户 Play 后回报 Console 输出
+
+========================================
+
+[2026-06-28 Gameplay 改动 — 关卡 t=0 立即出怪]
+指令：永久改为关卡一开始就生成怪物
+操作（先 Spec/DecisionLog 后代码）：
+  - 007_LevelSystem.md：Gameplay Rules / 状态机(_spawnTimer 初值) / AC / Test 1 全部改为 t=0 立即生成
+  - DecisionLog：旧决定「一个间隔后生成」标注作废；新增 [Gameplay] t=0 立即生成决定
+  - LevelSystem.cs HandleLevelStarted：_spawnTimer = 0f → _spawnTimer = _currentLevelData.SpawnIntervalSeconds（首帧即触发 TrySpawn）
+状态：完成
+备注：之后每只仍按 SpawnIntervalSeconds 间隔；暂停冻结/Resume 续计时逻辑不受影响
+
+========================================

@@ -256,7 +256,7 @@ Config：待移动阈值 0.5s（Balance 可调）。
 
 ## 2026-06-27（LevelSystem Spec 阶段）
 
-**[Gameplay] 第一只怪物在第一个 SpawnIntervalSeconds 结束后生成（非 t=0）**
+**[Gameplay] 第一只怪物在第一个 SpawnIntervalSeconds 结束后生成（非 t=0）** ~~（已于 2026-06-28 推翻，见下）~~
 原因：给玩家一个喘息时间观察球道布局，避免关卡开始瞬间即面对威胁；与烤制阶段的「先准备」节奏一致。
 
 ---
@@ -295,6 +295,14 @@ Config：待移动阈值 0.5s（Balance 可调）。
 **[Tech] 怪物占位缩放采用 MonsterData.DisplayScale（每种怪独立），而非生成占位 sprite 或全局倍率**
 决定：在 MonsterData 增加 `DisplayScale`（float，默认 1，≥0.01），在 MonsterController.ApplyScale 中乘在 ScaleCurve 之上。sprite 由策划手动赋值到各 MonsterData。
 原因：sprite 与缩放放同一个 SO，策划「拖图 + 调大小」一站式完成；每种怪图原始尺寸不同，独立缩放最灵活；乘法叠加保留 ScaleCurve 的透视比例。
+
+**[Gameplay] 改为关卡开始 t=0 立即生成第一只怪物（推翻 2026-06-27 的「一个间隔后生成」决定）**
+决定：HandleLevelStarted 中 `_spawnTimer` 初始化为 SpawnIntervalSeconds，使进入 PLAYING 的第一帧立即触发首次生成；之后按正常间隔。
+原因：用户决定取消开局喘息期，关卡一开始即出怪（更直接，也便于测试/节奏更紧凑）。已同步更新 007_LevelSystem Spec（Gameplay Rules / 状态机 / AC / Test 1）。
+
+**[Tech] LaneCalculator 顶点分类改为「先 Y 后 X」，修复透视球道点位坍缩**
+决定：Bake() 中识别球道左右轨道线，从「按 X 排序取两端」改为「先按 Y 分上下两排，再每排内按 X 分左右」。
+原因：球道为透视梯形且向两侧倾斜时，两个底顶点共享较小 X，X 排序会把左右边错认成上下两条水平线，导致 HorizontalIntersect 遇 dy≈0 返回固定 X，整条道的 waypoint X 坍缩成常数（表现为 5 条道挤成 2 个 X）。Y 排序能稳定区分上下排，再分左右即得正确的倾斜轨道。
 
 **[Tech] 分辨率独立：锁定 16:9，用相机黑边（letterbox）而非真实像素锁定**
 决定：通过 (1) 各 Canvas 的 CanvasScaler→Scale With Screen Size 1920×1080；(2) 新增 `AspectRatioEnforcer` 脚本挂主相机，强制相机视口为 16:9，非 16:9 屏幕补黑边；(3) Player Settings 默认分辨率 1920×1080，实现「任何设备画面构图一致」。

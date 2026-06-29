@@ -122,7 +122,8 @@ namespace GWBGameJam
             _currentLevelData = _levelConfig.Levels[_currentLevelIndex];
             _spawnedCount = 0;
             _exitedCount = 0;
-            _spawnTimer = 0f;
+            // 初始化为一个完整间隔，使进入 PLAYING 的第一帧立即触发首次生成（t=0 出怪）
+            _spawnTimer = _currentLevelData.SpawnIntervalSeconds;
             _isSpawningActive = true;
         }
 
